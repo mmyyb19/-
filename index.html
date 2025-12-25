@@ -2,341 +2,382 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>恋爱危机：视觉版模拟器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>恋爱危机：12.24 平安夜全模拟</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 自定义字体与平滑滚动 */
-        html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
         
-        /* 思考云朵动画 */
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-8px) scale(1.02); }
+        :root {
+            --ios-blur: blur(25px);
+            --ios-border: rgba(0, 0, 0, 0.08);
+            --bg-light: #f2f2f7;
         }
-        .thought-cloud {
-            position: relative;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 1.25rem;
-            padding: 12px 16px;
-            color: #1e293b;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            animation: float 4s ease-in-out infinite;
-            z-index: 10;
-            min-height: 50px;
+
+        body { 
+            font-family: -apple-system, 'Noto Sans SC', sans-serif; 
+            background-color: var(--bg-light);
+            color: #1d1d1f;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* UI 第二图布局还原 */
+        .thought-section { height: 22vh; margin-top: 1.5vh; flex-shrink: 0; padding: 0 16px; }
+        .progress-indicator-section { height: 8vh; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 20px; }
+        .scene-section { height: 42vh; flex-shrink: 0; padding: 0 16px; margin-top: 8px; }
+        .insight-section { height: 8vh; flex-shrink: 0; padding: 0 16px; margin-top: 12px; }
+        .action-section { height: 12vh; flex-shrink: 0; padding: 0 16px; padding-bottom: env(safe-area-inset-bottom); margin-top: 8px; }
+
+        .ios-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--ios-border);
+            border-radius: 22px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .thought-bubble {
+            padding: 16px;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.6;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.01em;
+            color: #3a3a3c;
+        }
+
+        .panel { flex: 1; display: flex; flex-direction: column; position: relative; }
+
+        /* 右侧浮动按钮：UI 第二图风格 */
+        #floatingNextBtn {
+            position: fixed;
+            right: 20px;
+            top: 52%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: #000;
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            transition: all 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            cursor: pointer;
         }
-        .thought-cloud::after, .thought-cloud::before {
-            content: '';
-            position: absolute;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 50%;
-        }
-        .thought-cloud::after { width: 12px; height: 12px; bottom: -10px; left: 20%; }
-        .thought-cloud::before { width: 6px; height: 6px; bottom: -16px; left: 15%; }
+        #floatingNextBtn:active { transform: translateY(-50%) scale(0.9); }
+        #floatingNextBtn.final { width: auto; padding: 0 28px; border-radius: 20px; }
 
-        /* 图片容器样式 */
-        .image-container {
-            width: 100%;
-            aspect-ratio: 4/3;
-            background: #0f172a;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        svg {
+            transform: scale(0.7); 
+            transform-origin: center;
         }
 
-        /* 状态条发光效果 */
-        .bar-glow { box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
-        .anger-glow { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
-
-        /* 按钮流光动画 */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .btn-shimmer {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
-            background-size: 200% 100%;
-            animation: shimmer 2s infinite linear;
+        #introOverlay {
+            background: #fff;
+            z-index: 1000;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 拉黑印章动画 */
-        .stamp {
-            transform: rotate(-15deg) scale(3);
+        #reflectionModal {
+            visibility: hidden;
             opacity: 0;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 50;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 2000;
         }
-        .stamp-active { opacity: 1; transform: rotate(-15deg) scale(1); }
+        #reflectionModal.active { visibility: visible; opacity: 1; }
 
-        /* 针对手机端的优化间距 */
-        @media (max-width: 640px) {
-            .mobile-padding { padding: 1rem; }
-            .image-container { aspect-ratio: 1/1; } /* 手机端正方形更具冲击力 */
+        .progress-container { flex: 1; display: flex; flex-direction: column; }
+        .progress-bar { height: 6px; background: rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; width: 100%; margin-top: 4px; }
+        .progress-fill { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); height: 100%; }
+        .bar-label { font-size: 10px; font-weight: 700; color: #8e8e93; display: flex; justify-content: space-between; }
+
+        @keyframes vibrate {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-1px); }
+            50% { transform: translateX(1px); }
+            100% { transform: translateX(0); }
+        }
+        .vibrate { animation: vibrate 0.1s linear infinite; }
+        
+        .stamp-text {
+            backdrop-blur-xl border-2 border-red-500 text-red-500 font-black text-xl px-8 py-3 bg-white/90 rotate-[-15deg] rounded-2xl tracking-[0.3em] shadow-2xl;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden">
+<body>
 
-    <!-- 状态栏高度占位 (模仿手机端) -->
-    <div class="h-6 bg-slate-900 w-full"></div>
+    <!-- 右侧悬浮箭头按钮 -->
+    <div id="floatingNextBtn" onclick="updateUI(event)" style="display:none">
+        <svg id="arrowIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+        <span id="finalText" class="hidden text-xs font-bold tracking-widest ml-2 uppercase">阅读反思信</span>
+    </div>
 
-    <!-- 顶部时间栏 -->
-    <header class="h-16 flex items-center justify-between px-6 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 shadow-lg z-40 sticky top-0">
-        <div class="flex flex-col">
-            <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">模拟进行中</span>
-            <h1 id="currentTime" class="text-xl font-black text-amber-400 italic">准备开始...</h1>
+    <!-- 开场简介 -->
+    <div id="introOverlay" class="fixed inset-0 flex flex-col items-center justify-center p-8">
+        <div class="ios-card p-12 mb-10 flex flex-col items-center text-slate-900 relative bg-white w-80">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-red-500 rounded-t-3xl"></div>
+            <p class="font-serif italic text-lg mb-2 text-slate-400">Mia & Alen</p>
+            <h1 class="text-xl font-black tracking-tight mb-4 text-center">恋爱危机溯源复盘</h1>
+            <p class="text-[10px] tracking-[0.4em] font-bold text-slate-300 uppercase">12.24 平安夜数据复现</p>
         </div>
-        <div class="flex space-x-1">
-            <div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+        <button onclick="startApp(event)" class="bg-black text-white px-14 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl">
+            开始复盘
+        </button>
+    </div>
+
+    <!-- 主界面 -->
+    <header class="h-14 flex items-center justify-between px-6 flex-none">
+        <div class="flex items-center space-x-3">
+            <div id="statusDot" class="w-2 h-2 rounded-full bg-amber-400"></div>
+            <span id="currentTime" class="text-[12px] font-black tracking-[0.2em] text-slate-400 uppercase">STANDBY</span>
+        </div>
+        <div class="text-[10px] font-bold text-slate-400 tracking-widest uppercase border-l border-slate-200 pl-3">
+            LOG MODE
         </div>
     </header>
 
-    <!-- 主展示区：移动端垂直排列 -->
-    <main class="flex-1 flex flex-col md:flex-row p-4 gap-6 pb-32">
-        
-        <!-- 男生视角 -->
-        <section id="boyPanel" class="flex-1 flex flex-col space-y-3">
-            <div class="h-20 flex items-end px-2">
-                <div id="boyOS" class="thought-cloud w-full hidden font-bold"></div>
+    <main class="flex-1 flex flex-col relative">
+        <!-- 思考气泡区 (严格显示OS) -->
+        <div class="thought-section flex gap-3">
+            <div class="panel">
+                <div id="boyOS" class="ios-card thought-bubble opacity-0"></div>
             </div>
-            
-            <div id="boyImgBox" class="image-container border border-blue-500/20">
-                <img id="boyImg" class="w-full h-full object-cover transition-transform duration-700" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="男生场景">
-                <div class="loading-overlay absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-20">
-                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span class="text-[10px] text-blue-400 font-mono tracking-tighter">RENDERING SCENE...</span>
-                </div>
-                <div class="absolute bottom-3 left-3 px-2 py-1 bg-blue-600/80 backdrop-blur text-[10px] font-bold rounded uppercase tracking-tighter shadow-lg">He / 男生视角</div>
+            <div class="panel">
+                <div id="girlOS" class="ios-card thought-bubble opacity-0"></div>
             </div>
+        </div>
 
-            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 shadow-xl">
-                <p id="boyAction" class="text-sm md:text-base text-slate-300 italic mb-4">等待操作...</p>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[10px] text-blue-400 font-black uppercase"><span>醉酒度 DRUNK</span><span id="drunkLabel">0/10</span></div>
-                    <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden bar-glow"><div id="drunkBar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-1000 w-0"></div></div>
+        <!-- 数值进度区 (OS下场景上) -->
+        <div class="progress-indicator-section">
+            <div class="flex gap-4">
+                <div class="progress-container">
+                    <div class="bar-label"><span>DRUNK (醉酒值)</span><span id="drunkNum">0%</span></div>
+                    <div class="progress-bar"><div id="drunkBar" class="progress-fill bg-blue-500 w-0"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="bar-label"><span>ANGER (怒气值)</span><span id="angerNum">0%</span></div>
+                    <div class="progress-bar"><div id="angerBar" class="progress-fill bg-rose-500 w-0"></div></div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- 女生视角 -->
-        <section id="girlPanel" class="flex-1 flex flex-col space-y-3">
-            <div class="h-20 flex items-end px-2">
-                <div id="girlOS" class="thought-cloud w-full hidden font-bold"></div>
-            </div>
-
-            <div id="girlImgBox" class="image-container border border-rose-500/20">
-                <img id="girlImg" class="w-full h-full object-cover transition-transform duration-700" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="女生场景">
-                <div class="loading-overlay absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-20">
-                    <div class="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span class="text-[10px] text-rose-400 font-mono tracking-tighter">SENSING EMOTION...</span>
-                </div>
-                <div id="blackListStamp" class="stamp absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="border-8 border-red-600 text-red-600 font-black text-5xl p-4 rounded-2xl bg-slate-950/90 shadow-2xl backdrop-blur-md uppercase tracking-tighter">已拉黑</div>
-                </div>
-                <div class="absolute bottom-3 left-3 px-2 py-1 bg-rose-600/80 backdrop-blur text-[10px] font-bold rounded uppercase tracking-tighter shadow-lg">She / 女生视角</div>
-            </div>
-
-            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 shadow-xl relative">
-                <p id="girlAction" class="text-sm md:text-base text-slate-300 italic mb-4">等待变动...</p>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[10px] text-rose-500 font-black uppercase"><span>怒气 ANGER</span><span id="angerLabel">0/100</span></div>
-                    <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden anger-glow"><div id="angerBar" class="h-full bg-gradient-to-r from-rose-600 to-red-500 transition-all duration-1000 w-0"></div></div>
+        <!-- 场景展示区 -->
+        <div class="scene-section flex gap-3">
+            <div class="panel ios-card flex items-center justify-center bg-blue-50/30" id="boyCanvas"></div>
+            <div class="panel ios-card flex items-center justify-center relative bg-rose-50/30" id="girlCanvas">
+                <div id="girlSvgContainer" class="w-full h-full flex items-center justify-center"></div>
+                <div id="stamp" class="absolute inset-0 flex items-center justify-center opacity-0 scale-150 transition-all duration-1000 pointer-events-none z-50">
+                    <div class="bg-white/95 border-[3px] border-red-500 text-red-500 font-black text-xl px-8 py-3 rotate-[-15deg] rounded-2xl tracking-[0.2em] shadow-2xl">信任清零 / 已拉黑</div>
                 </div>
             </div>
-        </section>
+        </div>
 
+        <!-- 溯源洞察 -->
+        <div class="insight-section">
+            <div id="aiInsight" class="h-full ios-card flex items-center px-6 text-[11px] text-slate-500 italic leading-relaxed">
+                <span id="insightText">等待系统初始化...</span>
+            </div>
+        </div>
+
+        <!-- 动作文本区 -->
+        <div class="action-section flex gap-3">
+            <div class="panel ios-card p-5 justify-center border-blue-100">
+                <div class="text-[9px] text-blue-400 font-black uppercase mb-1">Alen's Action</div>
+                <div id="boyAction" class="text-[12px] text-blue-900 font-bold leading-tight"></div>
+            </div>
+            <div class="panel ios-card p-5 justify-center border-rose-100">
+                <div class="text-[9px] text-rose-400 font-black uppercase mb-1">Mia's Action</div>
+                <div id="girlAction" class="text-[12px] text-rose-900 font-bold leading-tight"></div>
+            </div>
+        </div>
     </main>
 
-    <!-- 底部控制：悬浮效果 -->
-    <footer class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent z-50">
-        <button id="nextBtn" class="w-full py-4 rounded-2xl btn-shimmer text-slate-950 font-black text-lg shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale">
-            推进剧情
-        </button>
-    </footer>
+    <!-- 弹窗：Alen 的反思信 -->
+    <div id="reflectionModal" class="fixed inset-0 flex items-center justify-center px-6 py-10 bg-slate-900/40 backdrop-blur-md">
+        <div class="w-full max-w-md bg-white rounded-[40px] overflow-hidden flex flex-col shadow-[0_30px_60px_-12px_rgba(0,0,0,0.5)] h-[85vh]">
+            <div class="p-10 overflow-y-auto flex-1 text-slate-800 bg-[#fffcf9]" id="letterContent">
+                <div class="mb-8 flex justify-between items-start">
+                    <h2 class="text-2xl font-black tracking-tighter text-slate-900">反思报告</h2>
+                    <span class="text-[10px] font-bold text-slate-400">12.25 01:21复盘</span>
+                </div>
+                <div class="text-[14px] leading-[1.8] space-y-6 font-medium">
+                    <p>亲爱的mia：</p>
+                    <p>今天，我用了一天时间来反复复盘我昨晚犯下的错误，我列下了时间轴，一点点的拨开昨晚我们双方的情绪迷雾，我想，我应该是彻底搞清楚了我的罪行。</p>
+                    <div class="space-y-4 py-2 border-y border-orange-100">
+                        <p><strong>第一，时间失信：</strong>10点半到11点就应该走了，我随口跟你承诺，却喝到了12点。</p>
+                        <p><strong>第二，让你的信任和安全感清零：</strong>在你怒气飞速上升时，我因为醉酒而选择了忽视，甚至挂断电话，严重的损失了你的信任，让你瞬间安全感归零。</p>
+                        <p><strong>第三，敷衍的道歉：</strong>挂断电话的那一刻起，你的愤怒值就随着时间指数级上升，而我却没有第一时间意识到，而是磨磨唧唧的到了家才开始准备补救，却为时已晚。</p>
+                    </div>
+                    <p>我想再次的，诚恳地和你道歉，你是个极度需要安全感的人，可是我却一次又一次忽视了你的感受，我真的意识到了我的错误，我也跟你承诺我以后会严格重视你的情绪本质，不让你任何一点安全感缺失，我会始终把你放到心中的第一位。</p>
+                    <p>希望你能够看到我的反思和悔改，请你原谅我。</p>
+                    <p class="text-right mt-10 font-bold">卑微的Alen 敬呈</p>
+                </div>
+            </div>
+            <button onclick="closeModal(event)" class="bg-black text-white w-full py-7 text-xs font-black tracking-[0.3em] uppercase active:bg-slate-800 transition-colors">
+                退出复盘模式
+            </button>
+        </div>
+    </div>
 
     <script>
-        const apiKey = ""; 
+        const sc = {
+            boy_drinking: (drunk) => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.5" class="text-blue-500"><circle cx="100" cy="100" r="75" stroke-opacity="0.1"/><path d="M70 140 L70 120 L130 120 L130 140" stroke-linecap="round" /><path d="M100 120 L100 100" stroke-dasharray="2 4" /><circle cx="100" cy="80" r="${drunk*2}" fill="currentColor" fill-opacity="0.1"/></svg>`,
+            girl_waiting: (anger) => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.5" class="text-rose-500"><circle cx="100" cy="90" r="45" stroke-opacity="0.1"/><path d="M100 90 L100 60" stroke-width="3" stroke-linecap="round"/><path d="M100 90 L130 95" stroke-width="1.5"/><path d="M60 160 H140" stroke-opacity="0.2"/></svg>`,
+            conflict: () => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2" class="text-red-500"><rect x="75" y="60" width="50" height="80" rx="10" /><path d="M90 90 L110 110 M110 90 L90 110" stroke-width="3" stroke-linecap="round" /></svg>`,
+            shattered: () => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-800"><path d="M60 100 Q100 40 140 100" stroke-opacity="0.2"/><path d="M100 50 L90 80 L110 110 L90 150" stroke-width="3" stroke-linecap="round"/></svg>`
+        };
 
         const timeline = [
             {
-                time: "10点33分",
+                time: "22:33",
                 boy: "打电话：“干嘛呢，想你。”",
-                boyOS: "不知道你生气没有，打个电话探查一下",
-                boyPrompt: "Young man in early 20s, holding phone to ear, slightly hesitant smile, home setting, dim lighting, anime digital art style",
-                drunk: 3,
+                boyOS: "虽然还在喝，但打个电话确认她没生气，我有在努力联系。",
+                boySvg: sc.boy_drinking(10), drunk: 30,
                 girl: "接电话：“刷短剧，勿扰”",
-                girlOS: "忙着呢，别烦我",
-                girlPrompt: "Young woman lying on bed with messy hair, holding phone, glowing screen reflected in eyes, bored and annoyed expression, anime style",
-                anger: 5
+                girlOS: "还没回来？算了，我也在玩我的，暂时不想计较。",
+                girlSvg: sc.girl_waiting(10), anger: 10,
+                insight: "表面平和的通话，实际上是Alen失信的开始。"
             },
             {
-                time: "11点19分",
+                time: "23:19",
                 boy: "“我快结束了哈，马上走”",
-                boyOS: "要生气了，得赶快结束了",
-                boyPrompt: "Man in a bar, holding phone, surrounded by blurry friends and beer bottles, slightly flushed face, anime style",
-                drunk: 5,
+                boyOS: "酒精上头了，感觉到氛围不对，得赶紧撤。",
+                boySvg: sc.boy_drinking(15), drunk: 55,
                 girl: "打电话：“还不走？”",
-                girlOS: "说好的时间呢？",
-                girlPrompt: "Woman sitting up in bed, looking at her phone clock showing late night, frustrated face, dim bedroom, anime style",
-                anger: 20
+                girlOS: "说好的时间已经过了。我盯着时钟，火气在攒。",
+                girlSvg: sc.girl_waiting(40), anger: 40,
+                insight: "酒精让 Alen 产生了“还来得及”的错觉，但 Mia 的耐心正在耗尽。"
             },
             {
-                time: "11点30分",
-                boy: "微信消息：【圣诞快乐，老潘】",
-                boyOS: "忽略了警告信号",
-                boyPrompt: "Man smiling at his phone, colorful bar lights reflected on his face, beer glass in hand, anime style",
-                drunk: 6,
-                girl: "还没到？——被忽视的警告信号",
-                girlOS: "呵呵，圣诞快乐？人呢？",
-                girlPrompt: "Close up of a phone screen with chat, hand clenching the phone, intense angry eyes in background, anime style",
-                anger: 40
+                time: "23:54",
+                boy: "回复：现在走 (挂断视频)",
+                boyOS: "脑子不灵光了，现在视频满脸酒气怕她担心，先挂了。",
+                boySvg: sc.conflict(), drunk: 80,
+                girl: "发出消息：？ (视频通话被挂断)",
+                girlOS: "挂我视频？这是第一次。你到底怎么了？你在干嘛？",
+                girlSvg: sc.conflict(), anger: 85,
+                insight: "“挂断视频”是极其严重的策略错误，将醉酒的迟钝误传为冷漠。"
             },
             {
-                time: "11点54分",
-                boy: "收到消息：？<br>挂断视频（作死行为）？<br>回复：现在走",
-                boyOS: "赶快走赶快走",
-                boyPrompt: "Man in a dark street, frantically looking at phone, panic expression, neon signs in background, anime style",
-                drunk: 8,
-                girl: "发出消息：？<br>视频通话被挂断",
-                girlOS: "？？？挂我电话？出轨了？？？",
-                girlPrompt: "Woman staring at phone with pupils dilated in rage, dark background with red lighting, dramatic atmosphere, anime style",
-                anger: 85
+                time: "00:18",
+                boy: "决策：先把朋友送走，再报平安",
+                boyOS: "脑子反应慢了，以为送完人再解释就行，没意识到事情严重性。",
+                boySvg: sc.boy_drinking(25), drunk: 95,
+                girl: "【给你自由不是让你蹬鼻子上脸】",
+                girlOS: "消失了？彻底消失了。平安夜让我一个人等，你去死吧。",
+                girlSvg: sc.shattered(), anger: 150,
+                insight: "最后的挽回窗口被“送朋友”这个优先级决定给亲手关上了。"
             },
             {
-                time: "11点56分",
-                boy: "收到消息：在出轨？<br>回复视频：走了",
-                boyOS: "嫌我太晚生气了，赶紧收拾下准备走了，出去再回",
-                boyPrompt: "Man splashing water on face in a restroom, messy hair, looking tired and anxious, anime style",
-                drunk: 9,
-                girl: "发出消息：在出轨？",
-                girlOS: "行行行，喝酒这么晚还挂电话，分手吧",
-                girlPrompt: "Woman sitting on bed, shadow covering her eyes, holding phone coldly, zero emotion face, anime style",
-                anger: 100
-            },
-            {
-                time: "12点18分",
-                boy: "（决策）先把周送回去，然后打电话报平安",
-                boyOS: "还不知道已经被定性为出轨了",
-                boyPrompt: "Man sitting in a dark taxi, looking out at city night lights, feeling exhausted but oblivious, anime style",
-                drunk: 9,
-                girl: "消息：【给你的自由不是让你蹬鼻子上脸的】——拉黑",
-                girlOS: "行，出轨是吧，再见了，信任从此崩塌",
-                girlPrompt: "Hand tapping a red block button on a phone screen, cinematic close-up, tears dropping on screen, anime style",
-                anger: 150,
-                status: "BLACKED"
-            },
-            {
-                time: "12点39分",
-                boy: "到家，赶紧打视频解释",
-                boyOS: "慌了，彻底慌了",
-                boyPrompt: "Man standing at a dark apartment door, frantically calling, panicked face, anime style",
-                drunk: 9,
-                girl: "挂断，挂断，挂断（已拉黑）",
-                girlOS: "无上限 (彻底爆发)",
-                girlPrompt: "Phone on a table showing 'Call Ended', woman walking away into the shadows, finality, anime style",
-                anger: 300
+                time: "00:39",
+                boy: "到家，疯狂回拨电话",
+                boyOS: "终于清醒了一点，但天崩地裂，电话已经打不通了。",
+                boySvg: sc.shattered(), drunk: 100,
+                girl: "（已拉黑）",
+                girlOS: "信任清零。你所有的迟钝在我眼里都是不在乎。永别。",
+                girlSvg: sc.shattered(), anger: 300, status: "BLACKED",
+                insight: "信任归零。迟来的清醒和复盘无法抵消安全感的彻底崩塌。"
             }
         ];
 
         let step = -1;
-        const nextBtn = document.getElementById('nextBtn');
+        let isRunning = false;
 
-        function setLoading(id, isLoading) {
-            const el = document.querySelector(`#${id} .loading-overlay`);
-            if (el) el.style.opacity = isLoading ? "1" : "0";
-            if (el) el.style.pointerEvents = isLoading ? "auto" : "none";
+        function startApp(e) {
+            e.stopPropagation();
+            document.getElementById('introOverlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('introOverlay').style.display = 'none';
+                document.getElementById('floatingNextBtn').style.display = 'flex';
+                isRunning = true;
+                updateUI();
+            }, 800);
         }
 
-        async function generateImage(prompt, imgId, boxId) {
-            setLoading(boxId, true);
-            const img = document.getElementById(imgId);
-            
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        instances: [{ prompt: prompt }], 
-                        parameters: { sampleCount: 1 } 
-                    })
-                });
-
-                if (!response.ok) throw new Error();
-                const result = await response.json();
-                if (result.predictions?.[0]?.bytesBase64Encoded) {
-                    img.src = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
-                }
-            } catch (e) {
-                console.error(e);
-                img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-            } finally {
-                setLoading(boxId, false);
-            }
-        }
-
-        async function updateUI() {
-            const data = timeline[step];
-            document.getElementById('currentTime').innerText = data.time;
-            nextBtn.disabled = true;
-
-            // 内容
-            document.getElementById('boyAction').innerHTML = data.boy;
-            const bOS = document.getElementById('boyOS');
-            bOS.innerText = data.boyOS;
-            bOS.classList.remove('hidden');
-            document.getElementById('drunkBar').style.width = (data.drunk * 10) + '%';
-            document.getElementById('drunkLabel').innerText = `${data.drunk}/10`;
-
-            document.getElementById('girlAction').innerHTML = data.girl;
-            const gOS = document.getElementById('girlOS');
-            gOS.innerText = data.girlOS;
-            gOS.classList.remove('hidden');
-            
-            const angerBar = document.getElementById('angerBar');
-            const angerLabel = document.getElementById('angerLabel');
-            if (data.anger >= 100) {
-                angerBar.style.width = '100%';
-                angerLabel.innerText = data.anger >= 300 ? 'OUT OF RANGE' : 'MAX';
-                document.getElementById('girlPanel').classList.add('animate-shake');
-            } else {
-                angerBar.style.width = data.anger + '%';
-                angerLabel.innerText = data.anger + '/100';
-                document.getElementById('girlPanel').classList.remove('animate-shake');
-            }
-
-            // 并行渲染
-            await Promise.all([
-                generateImage(data.boyPrompt, 'boyImg', 'boyImgBox'),
-                generateImage(data.girlPrompt, 'girlImg', 'girlImgBox')
-            ]);
-
-            if (data.status === 'BLACKED' || data.anger >= 150) {
-                document.getElementById('blackListStamp').classList.add('stamp-active');
-            }
-
-            if (step === timeline.length - 1) {
-                nextBtn.innerText = "结局：彻底出局";
-                nextBtn.classList.remove('btn-shimmer');
-                nextBtn.classList.add('bg-slate-800', 'text-slate-500');
-            } else {
-                nextBtn.disabled = false;
-            }
-        }
-
-        nextBtn.addEventListener('click', () => {
+        function updateUI(e) {
+            if (e) e.stopPropagation();
             step++;
-            if (step < timeline.length) updateUI();
-        });
+            
+            if (step >= timeline.length) {
+                const btn = document.getElementById('floatingNextBtn');
+                btn.classList.add('final');
+                document.getElementById('arrowIcon').style.display = 'none';
+                document.getElementById('finalText').classList.remove('hidden');
+                btn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    document.getElementById('reflectionModal').classList.add('active');
+                };
+                return;
+            }
+
+            const d = timeline[step];
+            
+            // 顶部时间
+            document.getElementById('currentTime').innerText = `12.24 ${d.time}`;
+            document.getElementById('statusDot').className = `w-2 h-2 rounded-full ${d.anger > 100 ? 'bg-red-500 animate-pulse' : 'bg-amber-400'}`;
+            
+            // 严格显示 OS
+            const bOS = document.getElementById('boyOS');
+            bOS.innerHTML = d.boyOS ? `<span class="text-[9px] font-black opacity-30 mr-2 uppercase">Alen:</span> ${d.boyOS}` : "";
+            bOS.style.opacity = d.boyOS ? '1' : '0';
+
+            const gOS = document.getElementById('girlOS');
+            gOS.innerHTML = d.girlOS ? `<span class="text-[9px] font-black opacity-30 mr-2 uppercase">Mia:</span> ${d.girlOS}` : "";
+            gOS.style.opacity = d.girlOS ? '1' : '0';
+
+            // 进度条数值绑定修复
+            const dBar = document.getElementById('drunkBar');
+            const aBar = document.getElementById('angerBar');
+            const dNum = document.getElementById('drunkNum');
+            const aNum = document.getElementById('angerNum');
+            
+            dBar.style.width = d.drunk + '%';
+            aBar.style.width = Math.min(d.anger / 3, 100) + '%';
+            dNum.innerText = d.drunk + '%';
+            aNum.innerText = d.anger + '%';
+
+            // 场景 SVG
+            document.getElementById('boyCanvas').innerHTML = d.boySvg;
+            document.getElementById('girlSvgContainer').innerHTML = d.girlSvg;
+            
+            // 动作
+            document.getElementById('boyAction').innerText = d.boy;
+            document.getElementById('girlAction').innerText = d.girl;
+            
+            // 洞察
+            document.getElementById('insightText').innerText = d.insight;
+
+            // 震动特效
+            const girlCard = document.getElementById('girlCanvas');
+            if (d.anger >= 85) girlCard.classList.add('vibrate');
+            else girlCard.classList.remove('vibrate');
+
+            // 最终盖章
+            if (d.status === "BLACKED") {
+                const s = document.getElementById('stamp');
+                s.style.opacity = '1';
+                s.style.transform = 'scale(1) rotate(-15deg)';
+            }
+        }
+
+        function closeModal(e) {
+            e.stopPropagation();
+            document.getElementById('reflectionModal').classList.remove('active');
+        }
     </script>
 </body>
 </html>
