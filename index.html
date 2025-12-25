@@ -25,12 +25,11 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* UI 第二图布局还原 */
-        .thought-section { height: 22vh; margin-top: 1.5vh; flex-shrink: 0; padding: 0 16px; }
-        .progress-indicator-section { height: 8vh; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 0 20px; }
-        .scene-section { height: 42vh; flex-shrink: 0; padding: 0 16px; margin-top: 8px; }
-        .insight-section { height: 8vh; flex-shrink: 0; padding: 0 16px; margin-top: 12px; }
-        .action-section { height: 12vh; flex-shrink: 0; padding: 0 16px; padding-bottom: env(safe-area-inset-bottom); margin-top: 8px; }
+        .action-section { height: 13vh; margin-top: 1vh; flex-shrink: 0; padding: 0 16px; }
+        .progress-indicator-section { height: 8vh; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 0 20px; }
+        .insight-section { height: 6vh; flex-shrink: 0; padding: 0 16px; margin-top: 4px; }
+        .thought-section { height: 20vh; flex-shrink: 0; padding: 0 16px; margin-top: 8px; }
+        .scene-section { height: 38vh; flex-shrink: 0; padding: 0 16px; margin-top: 8px; padding-bottom: env(safe-area-inset-bottom); }
 
         .ios-card {
             background: rgba(255, 255, 255, 0.85);
@@ -42,6 +41,17 @@
             transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
+        .time-box {
+            background: #fff;
+            border: 1.5px solid #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
         .thought-bubble {
             padding: 16px;
             font-size: 13px;
@@ -49,59 +59,40 @@
             line-height: 1.6;
             height: 100%;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            flex-direction: column;
             letter-spacing: -0.01em;
             color: #3a3a3c;
+            overflow-y: auto;
         }
 
         .panel { flex: 1; display: flex; flex-direction: column; position: relative; }
 
-        /* 右侧浮动按钮：UI 第二图风格 */
-        #floatingNextBtn {
+        .nav-btn {
             position: fixed;
-            right: 20px;
-            top: 52%;
+            top: 45%;
             transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
-            border-radius: 30px;
-            background: #000;
-            color: white;
+            width: 54px;
+            height: 54px;
+            border-radius: 27px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
             z-index: 100;
             transition: all 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
             cursor: pointer;
         }
-        #floatingNextBtn:active { transform: translateY(-50%) scale(0.9); }
+        #floatingNextBtn { right: 16px; background: #000; color: white; box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+        #floatingPrevBtn { left: 16px; background: rgba(255,255,255,0.9); color: #000; border: 1px solid rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+        .nav-btn:active { transform: translateY(-50%) scale(0.9); }
         #floatingNextBtn.final { width: auto; padding: 0 28px; border-radius: 20px; }
 
-        svg {
-            transform: scale(0.7); 
-            transform-origin: center;
-        }
-
-        #introOverlay {
-            background: #fff;
-            z-index: 1000;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #reflectionModal {
-            visibility: hidden;
-            opacity: 0;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 2000;
-        }
-        #reflectionModal.active { visibility: visible; opacity: 1; }
-
-        .progress-container { flex: 1; display: flex; flex-direction: column; }
         .progress-bar { height: 6px; background: rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden; width: 100%; margin-top: 4px; }
-        .progress-fill { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); height: 100%; }
+        .progress-fill { transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1); height: 100%; width: 0; }
         .bar-label { font-size: 10px; font-weight: 700; color: #8e8e93; display: flex; justify-content: space-between; }
 
+        .emoji-scene { font-size: 80px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border-radius: 18px; }
+        
         @keyframes vibrate {
             0% { transform: translateX(0); }
             25% { transform: translateX(-1px); }
@@ -109,49 +100,76 @@
             100% { transform: translateX(0); }
         }
         .vibrate { animation: vibrate 0.1s linear infinite; }
-        
-        .stamp-text {
-            backdrop-blur-xl border-2 border-red-500 text-red-500 font-black text-xl px-8 py-3 bg-white/90 rotate-[-15deg] rounded-2xl tracking-[0.3em] shadow-2xl;
-        }
     </style>
 </head>
 <body>
 
-    <!-- 右侧悬浮箭头按钮 -->
-    <div id="floatingNextBtn" onclick="updateUI(event)" style="display:none">
-        <svg id="arrowIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-        <span id="finalText" class="hidden text-xs font-bold tracking-widest ml-2 uppercase">阅读反思信</span>
+    <!-- 导航 -->
+    <div id="floatingPrevBtn" class="nav-btn" style="display:none">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </div>
+    <div id="floatingNextBtn" class="nav-btn" style="display:none">
+        <svg id="arrowIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        <span id="finalText" class="hidden text-xs font-bold tracking-widest ml-2 uppercase">Alen 的亲笔道歉信</span>
     </div>
 
-    <!-- 开场简介 -->
-    <div id="introOverlay" class="fixed inset-0 flex flex-col items-center justify-center p-8">
+    <!-- 封面 -->
+    <div id="introOverlay" class="fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#f2f2f7] z-[1000]">
         <div class="ios-card p-12 mb-10 flex flex-col items-center text-slate-900 relative bg-white w-80">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-red-500 rounded-t-3xl"></div>
-            <p class="font-serif italic text-lg mb-2 text-slate-400">Mia & Alen</p>
-            <h1 class="text-xl font-black tracking-tight mb-4 text-center">恋爱危机溯源复盘</h1>
-            <p class="text-[10px] tracking-[0.4em] font-bold text-slate-300 uppercase">12.24 平安夜数据复现</p>
+            <h1 class="text-xl font-black tracking-tight mb-4 text-center">12.24 平安夜<br>恋爱危机溯源模拟器</h1>
+            <p class="text-[10px] tracking-[0.4em] font-bold text-slate-400 uppercase">Version 6.0 | 亲笔道歉版</p>
         </div>
-        <button onclick="startApp(event)" class="bg-black text-white px-14 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl">
-            开始复盘
-        </button>
+        <button id="startBtn" class="bg-black text-white px-14 py-4 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-2xl">开始数据复现</button>
     </div>
 
-    <!-- 主界面 -->
-    <header class="h-14 flex items-center justify-between px-6 flex-none">
+    <header class="h-20 flex items-end justify-between px-6 pb-2 flex-none">
         <div class="flex items-center space-x-3">
-            <div id="statusDot" class="w-2 h-2 rounded-full bg-amber-400"></div>
-            <span id="currentTime" class="text-[12px] font-black tracking-[0.2em] text-slate-400 uppercase">STANDBY</span>
-        </div>
-        <div class="text-[10px] font-bold text-slate-400 tracking-widest uppercase border-l border-slate-200 pl-3">
-            LOG MODE
+            <div class="time-box">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">TIME</span>
+                <span id="currentTime" class="text-[18px] font-black tracking-widest text-black font-mono">--:--</span>
+            </div>
+            <div class="flex flex-col">
+                <span id="sceneTitle" class="text-[13px] font-bold text-black tracking-tight tracking-widest">初始化数据...</span>
+            </div>
         </div>
     </header>
 
     <main class="flex-1 flex flex-col relative">
-        <!-- 思考气泡区 (严格显示OS) -->
+        <!-- 行动 -->
+        <div class="action-section flex gap-3">
+            <div class="panel ios-card p-5 justify-center border-blue-100">
+                <div class="text-[9px] text-blue-400 font-black uppercase mb-1">Alen 的行动</div>
+                <div id="boyAction" class="text-[12px] text-blue-900 font-bold leading-tight"></div>
+            </div>
+            <div class="panel ios-card p-5 justify-center border-rose-100">
+                <div class="text-[9px] text-rose-400 font-black uppercase mb-1">Mia 的行动</div>
+                <div id="girlAction" class="text-[12px] text-rose-900 font-bold leading-tight"></div>
+            </div>
+        </div>
+
+        <!-- 数值 -->
+        <div class="progress-indicator-section">
+            <div class="flex gap-4">
+                <div class="progress-container flex-1">
+                    <div class="bar-label"><span>醉酒值 (0-10)</span><span id="drunkNum">0/10</span></div>
+                    <div class="progress-bar"><div id="drunkBar" class="progress-fill"></div></div>
+                </div>
+                <div class="progress-container flex-1">
+                    <div class="bar-label"><span>怒气值 (0-100+)</span><span id="angerNum">0</span></div>
+                    <div class="progress-bar"><div id="angerBar" class="progress-fill"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 复盘 -->
+        <div class="insight-section">
+            <div id="aiInsight" class="h-full ios-card flex items-center px-6 text-[11px] text-slate-600 font-medium leading-relaxed">
+                <span id="insightText">等待系统初始化...</span>
+            </div>
+        </div>
+
+        <!-- 心路历程 -->
         <div class="thought-section flex gap-3">
             <div class="panel">
                 <div id="boyOS" class="ios-card thought-bubble opacity-0"></div>
@@ -161,222 +179,224 @@
             </div>
         </div>
 
-        <!-- 数值进度区 (OS下场景上) -->
-        <div class="progress-indicator-section">
-            <div class="flex gap-4">
-                <div class="progress-container">
-                    <div class="bar-label"><span>DRUNK (醉酒值)</span><span id="drunkNum">0%</span></div>
-                    <div class="progress-bar"><div id="drunkBar" class="progress-fill bg-blue-500 w-0"></div></div>
-                </div>
-                <div class="progress-container">
-                    <div class="bar-label"><span>ANGER (怒气值)</span><span id="angerNum">0%</span></div>
-                    <div class="progress-bar"><div id="angerBar" class="progress-fill bg-rose-500 w-0"></div></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 场景展示区 -->
+        <!-- 场景图 -->
         <div class="scene-section flex gap-3">
-            <div class="panel ios-card flex items-center justify-center bg-blue-50/30" id="boyCanvas"></div>
-            <div class="panel ios-card flex items-center justify-center relative bg-rose-50/30" id="girlCanvas">
-                <div id="girlSvgContainer" class="w-full h-full flex items-center justify-center"></div>
+            <div class="panel ios-card overflow-hidden" id="boyCanvas"></div>
+            <div class="panel ios-card overflow-hidden relative" id="girlCanvas">
+                <div id="girlSceneContainer" class="w-full h-full"></div>
                 <div id="stamp" class="absolute inset-0 flex items-center justify-center opacity-0 scale-150 transition-all duration-1000 pointer-events-none z-50">
-                    <div class="bg-white/95 border-[3px] border-red-500 text-red-500 font-black text-xl px-8 py-3 rotate-[-15deg] rounded-2xl tracking-[0.2em] shadow-2xl">信任清零 / 已拉黑</div>
+                    <div class="bg-white/95 border-[4px] border-red-600 text-red-600 font-black text-2xl px-10 py-4 rotate-[-15deg] rounded-2xl tracking-[0.2em] shadow-2xl">已拉黑</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 溯源洞察 -->
-        <div class="insight-section">
-            <div id="aiInsight" class="h-full ios-card flex items-center px-6 text-[11px] text-slate-500 italic leading-relaxed">
-                <span id="insightText">等待系统初始化...</span>
-            </div>
-        </div>
-
-        <!-- 动作文本区 -->
-        <div class="action-section flex gap-3">
-            <div class="panel ios-card p-5 justify-center border-blue-100">
-                <div class="text-[9px] text-blue-400 font-black uppercase mb-1">Alen's Action</div>
-                <div id="boyAction" class="text-[12px] text-blue-900 font-bold leading-tight"></div>
-            </div>
-            <div class="panel ios-card p-5 justify-center border-rose-100">
-                <div class="text-[9px] text-rose-400 font-black uppercase mb-1">Mia's Action</div>
-                <div id="girlAction" class="text-[12px] text-rose-900 font-bold leading-tight"></div>
             </div>
         </div>
     </main>
 
-    <!-- 弹窗：Alen 的反思信 -->
-    <div id="reflectionModal" class="fixed inset-0 flex items-center justify-center px-6 py-10 bg-slate-900/40 backdrop-blur-md">
-        <div class="w-full max-w-md bg-white rounded-[40px] overflow-hidden flex flex-col shadow-[0_30px_60px_-12px_rgba(0,0,0,0.5)] h-[85vh]">
-            <div class="p-10 overflow-y-auto flex-1 text-slate-800 bg-[#fffcf9]" id="letterContent">
-                <div class="mb-8 flex justify-between items-start">
-                    <h2 class="text-2xl font-black tracking-tighter text-slate-900">反思报告</h2>
-                    <span class="text-[10px] font-bold text-slate-400">12.25 01:21复盘</span>
+    <!-- 道歉信模态框 -->
+    <div id="reflectionModal" class="fixed inset-0 flex items-center justify-center px-6 py-10 bg-slate-900/50 backdrop-blur-md hidden opacity-0 transition-opacity duration-500 z-[2000]">
+        <div class="w-full max-w-md bg-[#fffaf5] rounded-[40px] overflow-hidden flex flex-col shadow-2xl h-[85vh] border-8 border-white">
+            <div class="p-8 md:p-10 overflow-y-auto flex-1 text-slate-800 font-serif" id="letterContent">
+                <div class="mb-8 border-b-2 border-orange-100 pb-4">
+                    <h2 class="text-xl font-bold text-orange-900">Alen 的亲笔道歉信</h2>
                 </div>
-                <div class="text-[14px] leading-[1.8] space-y-6 font-medium">
-                    <p>亲爱的mia：</p>
+                <div class="text-[14px] leading-[2] space-y-6 text-slate-700">
+                    <p>亲爱的 Mia：</p>
                     <p>今天，我用了一天时间来反复复盘我昨晚犯下的错误，我列下了时间轴，一点点的拨开昨晚我们双方的情绪迷雾，我想，我应该是彻底搞清楚了我的罪行。</p>
-                    <div class="space-y-4 py-2 border-y border-orange-100">
+                    <div class="space-y-4 py-4 border-y border-orange-200 bg-orange-50/50 px-4 rounded-xl">
                         <p><strong>第一，时间失信：</strong>10点半到11点就应该走了，我随口跟你承诺，却喝到了12点。</p>
                         <p><strong>第二，让你的信任和安全感清零：</strong>在你怒气飞速上升时，我因为醉酒而选择了忽视，甚至挂断电话，严重的损失了你的信任，让你瞬间安全感归零。</p>
                         <p><strong>第三，敷衍的道歉：</strong>挂断电话的那一刻起，你的愤怒值就随着时间指数级上升，而我却没有第一时间意识到，而是磨磨唧唧的到了家才开始准备补救，却为时已晚。</p>
                     </div>
                     <p>我想再次的，诚恳地和你道歉，你是个极度需要安全感的人，可是我却一次又一次忽视了你的感受，我真的意识到了我的错误，我也跟你承诺我以后会严格重视你的情绪本质，不让你任何一点安全感缺失，我会始终把你放到心中的第一位。</p>
                     <p>希望你能够看到我的反思和悔改，请你原谅我。</p>
-                    <p class="text-right mt-10 font-bold">卑微的Alen 敬呈</p>
+                    <div class="pt-8 text-right">
+                        <p class="font-bold text-lg text-slate-900 italic">卑微的 Alen 敬呈</p>
+                        <p class="text-xs text-slate-400 mt-1">2025年12月25日</p>
+                    </div>
                 </div>
             </div>
-            <button onclick="closeModal(event)" class="bg-black text-white w-full py-7 text-xs font-black tracking-[0.3em] uppercase active:bg-slate-800 transition-colors">
-                退出复盘模式
-            </button>
+            <button id="closeModalBtn" class="bg-orange-600 text-white w-full py-6 text-sm font-black tracking-[0.2em] uppercase active:scale-95 transition-transform">收起道歉信</button>
         </div>
     </div>
 
     <script>
-        const sc = {
-            boy_drinking: (drunk) => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.5" class="text-blue-500"><circle cx="100" cy="100" r="75" stroke-opacity="0.1"/><path d="M70 140 L70 120 L130 120 L130 140" stroke-linecap="round" /><path d="M100 120 L100 100" stroke-dasharray="2 4" /><circle cx="100" cy="80" r="${drunk*2}" fill="currentColor" fill-opacity="0.1"/></svg>`,
-            girl_waiting: (anger) => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.5" class="text-rose-500"><circle cx="100" cy="90" r="45" stroke-opacity="0.1"/><path d="M100 90 L100 60" stroke-width="3" stroke-linecap="round"/><path d="M100 90 L130 95" stroke-width="1.5"/><path d="M60 160 H140" stroke-opacity="0.2"/></svg>`,
-            conflict: () => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2" class="text-red-500"><rect x="75" y="60" width="50" height="80" rx="10" /><path d="M90 90 L110 110 M110 90 L90 110" stroke-width="3" stroke-linecap="round" /></svg>`,
-            shattered: () => `<svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-800"><path d="M60 100 Q100 40 140 100" stroke-opacity="0.2"/><path d="M100 50 L90 80 L110 110 L90 150" stroke-width="3" stroke-linecap="round"/></svg>`
-        };
-
         const timeline = [
             {
-                time: "22:33",
-                boy: "打电话：“干嘛呢，想你。”",
-                boyOS: "虽然还在喝，但打个电话确认她没生气，我有在努力联系。",
-                boySvg: sc.boy_drinking(10), drunk: 30,
-                girl: "接电话：“刷短剧，勿扰”",
-                girlOS: "还没回来？算了，我也在玩我的，暂时不想计较。",
-                girlSvg: sc.girl_waiting(10), anger: 10,
-                insight: "表面平和的通话，实际上是Alen失信的开始。"
+                time: "10:33", title: "初步探查",
+                boy: "打电话：干嘛呢，想你。",
+                boyOS: "不知道你生气没有，打个电话探查一下",
+                boyEmoji: "📞", drunk: 3,
+                girl: "接电话：刷短剧，勿扰",
+                girlOS: "无趣",
+                girlEmoji: "📱", anger: 5,
+                insight: "Alen 试图进行试探性的温柔安抚，但 Mia 此时处于情绪平淡期。"
             },
             {
-                time: "23:19",
+                time: "11:19", title: "预警信号",
                 boy: "“我快结束了哈，马上走”",
-                boyOS: "酒精上头了，感觉到氛围不对，得赶紧撤。",
-                boySvg: sc.boy_drinking(15), drunk: 55,
-                girl: "打电话：“还不走？”",
-                girlOS: "说好的时间已经过了。我盯着时钟，火气在攒。",
-                girlSvg: sc.girl_waiting(40), anger: 40,
-                insight: "酒精让 Alen 产生了“还来得及”的错觉，但 Mia 的耐心正在耗尽。"
+                boyOS: "要生气了，得赶快结束了",
+                boyEmoji: "🍺", drunk: 5,
+                girl: "打电话：还不走？",
+                girlOS: "我要开始闹了",
+                girlEmoji: "💢", anger: 20,
+                insight: "Mia 已经开始通过询问施压，Alen 觉察到危机但低估了爆发力。"
             },
             {
-                time: "23:54",
-                boy: "回复：现在走 (挂断视频)",
-                boyOS: "脑子不灵光了，现在视频满脸酒气怕她担心，先挂了。",
-                boySvg: sc.conflict(), drunk: 80,
-                girl: "发出消息：？ (视频通话被挂断)",
-                girlOS: "挂我视频？这是第一次。你到底怎么了？你在干嘛？",
-                girlSvg: sc.conflict(), anger: 85,
-                insight: "“挂断视频”是极其严重的策略错误，将醉酒的迟钝误传为冷漠。"
+                time: "11:30", title: "警告升级",
+                boy: "发出微信消息：圣诞快乐，老潘",
+                boyOS: "突然发现是圣诞了啊，我真该死",
+                boyEmoji: "🎄", drunk: 6,
+                girl: "回复微信：还没到？——被忽视的警告信号",
+                girlOS: "你不是已经走了？",
+                girlEmoji: "⏳", anger: 40,
+                insight: "圣诞节点的特殊性被忽略，失信的种子开始在 Mia 心中发芽。"
             },
             {
-                time: "00:18",
-                boy: "决策：先把朋友送走，再报平安",
-                boyOS: "脑子反应慢了，以为送完人再解释就行，没意识到事情严重性。",
-                boySvg: sc.boy_drinking(25), drunk: 95,
-                girl: "【给你自由不是让你蹬鼻子上脸】",
-                girlOS: "消失了？彻底消失了。平安夜让我一个人等，你去死吧。",
-                girlSvg: sc.shattered(), anger: 150,
-                insight: "最后的挽回窗口被“送朋友”这个优先级决定给亲手关上了。"
+                time: "11:54", title: "致命误解",
+                boy: "视频电话—挂断（作死行为）；回复：现在走",
+                boyOS: "完了，要赶紧走了，回去好好安抚和道歉吧",
+                boyEmoji: "📴", drunk: 8,
+                girl: "发出微信消息：？；视频电话被挂断",
+                girlOS: "？？？挂我电话？出轨了？？？",
+                girlEmoji: "💔", anger: 80,
+                insight: "由于醉酒导致的降智操作，直接触发了对方最极端的猜忌。"
             },
             {
-                time: "00:39",
-                boy: "到家，疯狂回拨电话",
-                boyOS: "终于清醒了一点，但天崩地裂，电话已经打不通了。",
-                boySvg: sc.shattered(), drunk: 100,
-                girl: "（已拉黑）",
-                girlOS: "信任清零。你所有的迟钝在我眼里都是不在乎。永别。",
-                girlSvg: sc.shattered(), anger: 300, status: "BLACKED",
-                insight: "信任归零。迟来的清醒和复盘无法抵消安全感的彻底崩塌。"
+                time: "11:56", title: "低估事态",
+                boy: "回复视频电话：走了",
+                boyOS: "嫌我太晚生气了，赶紧上个厕所，收拾下准备走了，出去再回（低估事态严重性）",
+                boyEmoji: "🚽", drunk: 9,
+                girl: "发出微信消息：在出轨？",
+                girlOS: "行行行，喝酒喝到这么晚，挂我电话，还出轨？分手吧",
+                girlEmoji: "🔥", anger: 100,
+                insight: "Alen 的磨叽在对方看来是不诚实的狡辩，愤怒值正式破百。"
+            },
+            {
+                time: "12:18", title: "最后稻草",
+                boy: "（还不知道被定性为出轨了）先把周送回去",
+                boyOS: "先把周送回去，然后打个电话报平安",
+                boyEmoji: "🚗", drunk: 9,
+                girl: "发出微信消息：给你的自由不是让你蹬鼻子上脸的——拉黑",
+                girlOS: "行，出轨是吧，再见了，信任从此崩塌",
+                girlEmoji: "🚫", anger: 200, status: "BLACKED",
+                insight: "在对方极度不安时优先选择社交礼仪，成了压死骆驼的最后一根稻草。"
+            },
+            {
+                time: "12:39", title: "终局补救",
+                boy: "到家，赶紧打视频电话解释",
+                boyOS: "求求了，别生太大气",
+                boyEmoji: "😫", drunk: 9,
+                girl: "挂断，挂断，挂断（已拉黑）",
+                girlOS: "拜拜，再也不见",
+                girlEmoji: "⬛", anger: 300,
+                insight: "信任清零后的补救已无济于事，关系进入绝对冰封期。"
             }
         ];
 
         let step = -1;
-        let isRunning = false;
 
-        function startApp(e) {
-            e.stopPropagation();
+        window.onload = () => {
+            document.getElementById('startBtn').onclick = startApp;
+            document.getElementById('floatingPrevBtn').onclick = prevStep;
+            document.getElementById('floatingNextBtn').onclick = nextStep;
+            document.getElementById('closeModalBtn').onclick = closeModal;
+        };
+
+        function startApp() {
             document.getElementById('introOverlay').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('introOverlay').style.display = 'none';
                 document.getElementById('floatingNextBtn').style.display = 'flex';
-                isRunning = true;
+                step = 0;
                 updateUI();
-            }, 800);
+            }, 600);
         }
 
-        function updateUI(e) {
-            if (e) e.stopPropagation();
-            step++;
-            
-            if (step >= timeline.length) {
-                const btn = document.getElementById('floatingNextBtn');
-                btn.classList.add('final');
-                document.getElementById('arrowIcon').style.display = 'none';
-                document.getElementById('finalText').classList.remove('hidden');
-                btn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    document.getElementById('reflectionModal').classList.add('active');
-                };
+        function nextStep() {
+            if (step >= timeline.length - 1) {
+                const nextBtn = document.getElementById('floatingNextBtn');
+                if (nextBtn.classList.contains('final')) {
+                    const modal = document.getElementById('reflectionModal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.style.opacity = '1', 10);
+                } else {
+                    nextBtn.classList.add('final');
+                    document.getElementById('arrowIcon').style.display = 'none';
+                    document.getElementById('finalText').classList.remove('hidden');
+                }
                 return;
             }
+            step++;
+            updateUI();
+        }
 
+        function prevStep() {
+            if (step <= 0) return;
+            step--;
+            updateUI();
+        }
+
+        function updateUI() {
             const d = timeline[step];
+            document.getElementById('floatingPrevBtn').style.display = step === 0 ? 'none' : 'flex';
             
-            // 顶部时间
-            document.getElementById('currentTime').innerText = `12.24 ${d.time}`;
-            document.getElementById('statusDot').className = `w-2 h-2 rounded-full ${d.anger > 100 ? 'bg-red-500 animate-pulse' : 'bg-amber-400'}`;
-            
-            // 严格显示 OS
-            const bOS = document.getElementById('boyOS');
-            bOS.innerHTML = d.boyOS ? `<span class="text-[9px] font-black opacity-30 mr-2 uppercase">Alen:</span> ${d.boyOS}` : "";
-            bOS.style.opacity = d.boyOS ? '1' : '0';
+            if (step < timeline.length - 1) {
+                const nextBtn = document.getElementById('floatingNextBtn');
+                nextBtn.classList.remove('final');
+                document.getElementById('arrowIcon').style.display = 'block';
+                document.getElementById('finalText').classList.add('hidden');
+            } else {
+                const nextBtn = document.getElementById('floatingNextBtn');
+                nextBtn.classList.add('final');
+                document.getElementById('arrowIcon').style.display = 'none';
+                document.getElementById('finalText').classList.remove('hidden');
+            }
 
-            const gOS = document.getElementById('girlOS');
-            gOS.innerHTML = d.girlOS ? `<span class="text-[9px] font-black opacity-30 mr-2 uppercase">Mia:</span> ${d.girlOS}` : "";
-            gOS.style.opacity = d.girlOS ? '1' : '0';
+            document.getElementById('currentTime').innerText = d.time;
+            document.getElementById('sceneTitle').innerText = d.title;
 
-            // 进度条数值绑定修复
-            const dBar = document.getElementById('drunkBar');
-            const aBar = document.getElementById('angerBar');
-            const dNum = document.getElementById('drunkNum');
-            const aNum = document.getElementById('angerNum');
-            
-            dBar.style.width = d.drunk + '%';
-            aBar.style.width = Math.min(d.anger / 3, 100) + '%';
-            dNum.innerText = d.drunk + '%';
-            aNum.innerText = d.anger + '%';
-
-            // 场景 SVG
-            document.getElementById('boyCanvas').innerHTML = d.boySvg;
-            document.getElementById('girlSvgContainer').innerHTML = d.girlSvg;
-            
-            // 动作
             document.getElementById('boyAction').innerText = d.boy;
             document.getElementById('girlAction').innerText = d.girl;
-            
-            // 洞察
+
+            const bOS = document.getElementById('boyOS');
+            bOS.innerHTML = `<span class="text-[9px] font-black opacity-30 mb-1 uppercase tracking-tighter">Alen 的心路历程:</span> ${d.boyOS}`;
+            bOS.style.opacity = '1';
+
+            const gOS = document.getElementById('girlOS');
+            gOS.innerHTML = `<span class="text-[9px] font-black opacity-30 mb-1 uppercase tracking-tighter">Mia 的心路历程:</span> ${d.girlOS}`;
+            gOS.style.opacity = '1';
+
+            const dFill = document.getElementById('drunkBar');
+            const aFill = document.getElementById('angerBar');
+            dFill.style.width = (d.drunk * 10) + '%';
+            dFill.style.backgroundColor = d.drunk > 7 ? '#4c1d95' : '#3b82f6';
+            aFill.style.width = Math.min(d.anger / 2, 100) + '%';
+            aFill.style.backgroundColor = d.anger >= 100 ? '#e11d48' : '#f97316';
+
+            document.getElementById('drunkNum').innerText = d.drunk + '/10';
+            document.getElementById('angerNum').innerText = d.anger >= 300 ? '无上限' : d.anger;
+
+            document.getElementById('boyCanvas').innerHTML = `<div class="emoji-scene">${d.boyEmoji}</div>`;
+            document.getElementById('girlSceneContainer').innerHTML = `<div class="emoji-scene">${d.girlEmoji}</div>`;
             document.getElementById('insightText').innerText = d.insight;
 
-            // 震动特效
             const girlCard = document.getElementById('girlCanvas');
-            if (d.anger >= 85) girlCard.classList.add('vibrate');
+            if (d.anger >= 100) girlCard.classList.add('vibrate');
             else girlCard.classList.remove('vibrate');
 
-            // 最终盖章
+            const s = document.getElementById('stamp');
             if (d.status === "BLACKED") {
-                const s = document.getElementById('stamp');
                 s.style.opacity = '1';
                 s.style.transform = 'scale(1) rotate(-15deg)';
+            } else {
+                s.style.opacity = '0';
+                s.style.transform = 'scale(1.5) rotate(-15deg)';
             }
         }
 
-        function closeModal(e) {
-            e.stopPropagation();
-            document.getElementById('reflectionModal').classList.remove('active');
+        function closeModal() {
+            const modal = document.getElementById('reflectionModal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 500);
         }
     </script>
 </body>
